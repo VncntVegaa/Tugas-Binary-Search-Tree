@@ -1,3 +1,5 @@
+import pandas as pd
+
 # ======================
 # NODE
 # ======================
@@ -37,10 +39,9 @@ class BST:
         return self.search(root.right, id)
 
     def min_value_node(self, root):
-        current = root
-        while current.left:
-            current = current.left
-        return current
+        while root.left:
+            root = root.left
+        return root
 
     def delete(self, root, id):
         if root is None:
@@ -48,10 +49,8 @@ class BST:
 
         if id < root.id:
             root.left = self.delete(root.left, id)
-
         elif id > root.id:
             root.right = self.delete(root.right, id)
-
         else:
             if root.left is None:
                 return root.right
@@ -84,6 +83,21 @@ class BST:
             print(root.id, "-", root.nama)
 
 # ======================
+# LOAD EXCEL
+# ======================
+def load_excel(path, bst):
+    try:
+        df = pd.read_excel(path)
+
+        for _, row in df.iterrows():
+            bst.root = bst.insert(bst.root, int(row['id']), str(row['nama']))
+
+        print("✅ Data Excel berhasil dimuat!")
+
+    except Exception as e:
+        print("❌ Gagal membaca Excel:", e)
+
+# ======================
 # MAIN PROGRAM
 # ======================
 def main():
@@ -95,11 +109,12 @@ def main():
         print("2. Cari Data")
         print("3. Hapus Data")
         print("4. Traversal")
-        print("5. Keluar")
+        print("5. Load dari Excel")
+        print("6. Keluar")
 
         pilihan = input("Pilih menu: ")
 
-        # TAMBAH DATA
+        # TAMBAH
         if pilihan == "1":
             try:
                 id = int(input("Masukkan ID: "))
@@ -109,7 +124,7 @@ def main():
             except:
                 print("❌ Input tidak valid")
 
-        # CARI DATA
+        # CARI
         elif pilihan == "2":
             try:
                 cari_id = int(input("Masukkan ID: "))
@@ -122,7 +137,7 @@ def main():
             except:
                 print("❌ Input tidak valid")
 
-        # HAPUS DATA
+        # HAPUS
         elif pilihan == "3":
             try:
                 hapus_id = int(input("Masukkan ID: "))
@@ -147,20 +162,22 @@ def main():
             if pilih_traversal == "1":
                 print("\nInorder:")
                 bst.inorder(bst.root)
-
             elif pilih_traversal == "2":
                 print("\nPreorder:")
                 bst.preorder(bst.root)
-
             elif pilih_traversal == "3":
                 print("\nPostorder:")
                 bst.postorder(bst.root)
-
             else:
                 print("❌ Pilihan tidak valid")
 
-        # KELUAR
+        # LOAD EXCEL
         elif pilihan == "5":
+            path = input("Masukkan path file Excel: ")
+            load_excel(path, bst)
+
+        # KELUAR
+        elif pilihan == "6":
             print("Program selesai.")
             break
 
@@ -172,3 +189,4 @@ def main():
 # ======================
 if __name__ == "__main__":
     main()
+    
