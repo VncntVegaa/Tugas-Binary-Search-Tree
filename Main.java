@@ -1,226 +1,192 @@
-import java.util.Scanner;
+import pandas as pd
 
-// ======================
-// NODE
-// ======================
-class Node {
-    int id;
-    String nama;
-    Node left, right;
+# ======================
+# NODE
+# ======================
+class Node:
+    def __init__(self, id, nama):
+        self.id = id
+        self.nama = nama
+        self.left = None
+        self.right = None
 
-    public Node(int id, String nama) {
-        this.id = id;
-        this.nama = nama;
-        this.left = null;
-        this.right = null;
-    }
-}
+# ======================
+# BST
+# ======================
+class BST:
+    def __init__(self):
+        self.root = None
 
-// ======================
-// BST
-// ======================
-class BST {
-    Node root;
+    def insert(self, root, id, nama):
+        if root is None:
+            return Node(id, nama)
 
-    // INSERT
-    public Node insert(Node root, int id, String nama) {
-        if (root == null) {
-            return new Node(id, nama);
-        }
+        if id < root.id:
+            root.left = self.insert(root.left, id, nama)
+        elif id > root.id:
+            root.right = self.insert(root.right, id, nama)
+        else:
+            print("❌ ID sudah ada, tidak boleh duplikat!")
 
-        if (id < root.id) {
-            root.left = insert(root.left, id, nama);
-        } else if (id > root.id) {
-            root.right = insert(root.right, id, nama);
-        } else {
-            System.out.println("❌ ID sudah ada, tidak boleh duplikat!");
-        }
+        return root
 
-        return root;
-    }
+    def search(self, root, id):
+        if root is None or root.id == id:
+            return root
 
-    // SEARCH
-    public Node search(Node root, int id) {
-        if (root == null || root.id == id) {
-            return root;
-        }
+        if id < root.id:
+            return self.search(root.left, id)
+        return self.search(root.right, id)
 
-        if (id < root.id) {
-            return search(root.left, id);
-        }
-        return search(root.right, id);
-    }
+    def min_value_node(self, root):
+        while root.left:
+            root = root.left
+        return root
 
-    // MIN VALUE NODE
-    public Node minValueNode(Node root) {
-        Node current = root;
-        while (current.left != null) {
-            current = current.left;
-        }
-        return current;
-    }
+    def delete(self, root, id):
+        if root is None:
+            return root
 
-    // DELETE
-    public Node delete(Node root, int id) {
-        if (root == null) {
-            return root;
-        }
+        if id < root.id:
+            root.left = self.delete(root.left, id)
+        elif id > root.id:
+            root.right = self.delete(root.right, id)
+        else:
+            if root.left is None:
+                return root.right
+            elif root.right is None:
+                return root.left
 
-        if (id < root.id) {
-            root.left = delete(root.left, id);
-        } else if (id > root.id) {
-            root.right = delete(root.right, id);
-        } else {
-            // 1 anak / tidak ada anak
-            if (root.left == null) {
-                return root.right;
-            } else if (root.right == null) {
-                return root.left;
-            }
+            temp = self.min_value_node(root.right)
+            root.id = temp.id
+            root.nama = temp.nama
+            root.right = self.delete(root.right, temp.id)
 
-            // 2 anak
-            Node temp = minValueNode(root.right);
-            root.id = temp.id;
-            root.nama = temp.nama;
-            root.right = delete(root.right, temp.id);
-        }
+        return root
 
-        return root;
-    }
+    def inorder(self, root):
+        if root:
+            self.inorder(root.left)
+            print(root.id, "-", root.nama)
+            self.inorder(root.right)
 
-    // INORDER
-    public void inorder(Node root) {
-        if (root != null) {
-            inorder(root.left);
-            System.out.println(root.id + " - " + root.nama);
-            inorder(root.right);
-        }
-    }
+    def preorder(self, root):
+        if root:
+            print(root.id, "-", root.nama)
+            self.preorder(root.left)
+            self.preorder(root.right)
 
-    // PREORDER
-    public void preorder(Node root) {
-        if (root != null) {
-            System.out.println(root.id + " - " + root.nama);
-            preorder(root.left);
-            preorder(root.right);
-        }
-    }
+    def postorder(self, root):
+        if root:
+            self.postorder(root.left)
+            self.postorder(root.right)
+            print(root.id, "-", root.nama)
 
-    // POSTORDER
-    public void postorder(Node root) {
-        if (root != null) {
-            postorder(root.left);
-            postorder(root.right);
-            System.out.println(root.id + " - " + root.nama);
-        }
-    }
-}
+# ======================
+# LOAD EXCEL
+# ======================
+def load_excel(path, bst):
+    try:
+        df = pd.read_excel(path)
 
-// ======================
-// MAIN PROGRAM
-// ======================
-public class Main {
-    public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);
-        BST bst = new BST();
+        for _, row in df.iterrows():
+            bst.root = bst.insert(bst.root, int(row['id']), str(row['nama']))
 
-        while (true) {
-            System.out.println("\n===== MENU BST =====");
-            System.out.println("1. Tambah Data");
-            System.out.println("2. Cari Data");
-            System.out.println("3. Hapus Data");
-            System.out.println("4. Traversal");
-            System.out.println("5. Keluar");
+        print("✅ Data Excel berhasil dimuat!")
 
-            System.out.print("Pilih menu: ");
-            String pilihan = input.nextLine();
+    except Exception as e:
+        print("❌ Gagal membaca Excel:", e)
 
-            // TAMBAH DATA
-            if (pilihan.equals("1")) {
-                try {
-                    System.out.print("Masukkan ID: ");
-                    int id = Integer.parseInt(input.nextLine());
-                    System.out.print("Masukkan Nama: ");
-                    String nama = input.nextLine();
+# ======================
+# MAIN PROGRAM
+# ======================
+def main():
+    bst = BST()
 
-                    bst.root = bst.insert(bst.root, id, nama);
-                    System.out.println("✅ Data berhasil ditambahkan");
-                } catch (Exception e) {
-                    System.out.println("❌ Input tidak valid");
-                }
-            }
+    while True:
+        print("\n===== MENU BST =====")
+        print("1. Tambah Data")
+        print("2. Cari Data")
+        print("3. Hapus Data")
+        print("4. Traversal")
+        print("5. Load dari Excel")
+        print("6. Keluar")
 
-            // CARI DATA
-            else if (pilihan.equals("2")) {
-                try {
-                    System.out.print("Masukkan ID: ");
-                    int cariId = Integer.parseInt(input.nextLine());
+        pilihan = input("Pilih menu: ")
 
-                    Node hasil = bst.search(bst.root, cariId);
+        # TAMBAH
+        if pilihan == "1":
+            try:
+                id = int(input("Masukkan ID: "))
+                nama = input("Masukkan Nama: ")
+                bst.root = bst.insert(bst.root, id, nama)
+                print("✅ Data berhasil ditambahkan")
+            except:
+                print("❌ Input tidak valid")
 
-                    if (hasil != null) {
-                        System.out.println("✅ Ditemukan: " + hasil.id + " - " + hasil.nama);
-                    } else {
-                        System.out.println("❌ Data tidak ditemukan");
-                    }
-                } catch (Exception e) {
-                    System.out.println("❌ Input tidak valid");
-                }
-            }
+        # CARI
+        elif pilihan == "2":
+            try:
+                cari_id = int(input("Masukkan ID: "))
+                hasil = bst.search(bst.root, cari_id)
 
-            // HAPUS DATA
-            else if (pilihan.equals("3")) {
-                try {
-                    System.out.print("Masukkan ID: ");
-                    int hapusId = Integer.parseInt(input.nextLine());
+                if hasil:
+                    print("✅ Ditemukan:", hasil.id, "-", hasil.nama)
+                else:
+                    print("❌ Data tidak ditemukan")
+            except:
+                print("❌ Input tidak valid")
 
-                    bst.root = bst.delete(bst.root, hapusId);
-                    System.out.println("✅ Data berhasil dihapus (jika ada)");
-                } catch (Exception e) {
-                    System.out.println("❌ Input tidak valid");
-                }
-            }
+        # HAPUS
+        elif pilihan == "3":
+            try:
+                hapus_id = int(input("Masukkan ID: "))
+                bst.root = bst.delete(bst.root, hapus_id)
+                print("✅ Data berhasil dihapus (jika ada)")
+            except:
+                print("❌ Input tidak valid")
 
-            // TRAVERSAL
-            else if (pilihan.equals("4")) {
-                if (bst.root == null) {
-                    System.out.println("❌ Tree masih kosong!");
-                    continue;
-                }
+        # TRAVERSAL
+        elif pilihan == "4":
+            if bst.root is None:
+                print("❌ Tree masih kosong!")
+                continue
 
-                System.out.println("\n--- Traversal ---");
-                System.out.println("1. Inorder");
-                System.out.println("2. Preorder");
-                System.out.println("3. Postorder");
+            print("\n--- Traversal ---")
+            print("1. Inorder")
+            print("2. Preorder")
+            print("3. Postorder")
 
-                System.out.print("Pilih jenis traversal: ");
-                String pilihTraversal = input.nextLine();
+            pilih_traversal = input("Pilih jenis traversal: ")
 
-                if (pilihTraversal.equals("1")) {
-                    System.out.println("\nInorder:");
-                    bst.inorder(bst.root);
-                } else if (pilihTraversal.equals("2")) {
-                    System.out.println("\nPreorder:");
-                    bst.preorder(bst.root);
-                } else if (pilihTraversal.equals("3")) {
-                    System.out.println("\nPostorder:");
-                    bst.postorder(bst.root);
-                } else {
-                    System.out.println("❌ Pilihan tidak valid");
-                }
-            }
+            if pilih_traversal == "1":
+                print("\nInorder:")
+                bst.inorder(bst.root)
+            elif pilih_traversal == "2":
+                print("\nPreorder:")
+                bst.preorder(bst.root)
+            elif pilih_traversal == "3":
+                print("\nPostorder:")
+                bst.postorder(bst.root)
+            else:
+                print("❌ Pilihan tidak valid")
 
-            // KELUAR
-            else if (pilihan.equals("5")) {
-                System.out.println("Program selesai.");
-                break;
-            }
+        # LOAD EXCEL
+        elif pilihan == "5":
+            path = input("Masukkan path file Excel: ")
+            load_excel(path, bst)
 
-            else {
-                System.out.println("❌ Pilihan tidak valid");
-            }
-        }
+        # KELUAR
+        elif pilihan == "6":
+            print("Program selesai.")
+            break
 
-        input.close();
-    }
-}
+        else:
+            print("❌ Pilihan tidak valid")
+
+# ======================
+# RUN
+# ======================
+if __name__ == "__main__":
+    main()
+    
